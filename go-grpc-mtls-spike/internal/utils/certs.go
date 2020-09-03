@@ -12,7 +12,11 @@ import (
 func LoadTLSCreds(hostCrtPath string, privateKeyPath string, caCertPath string) (tls.Certificate, *x509.CertPool, error) {
 	emptyCert := tls.Certificate{}
 
-	_, file, _, _ := runtime.Caller(0)
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return emptyCert, nil, fmt.Errorf("failed to get current path")
+	}
+
 	hostCrt := path.Join(path.Dir(file), hostCrtPath)
 	privateKey := path.Join(path.Dir(file), privateKeyPath)
 	caCert := path.Join(path.Dir(file), caCertPath)
@@ -28,7 +32,7 @@ func LoadTLSCreds(hostCrtPath string, privateKeyPath string, caCertPath string) 
 		return emptyCert, nil, err
 	}
 
-	ok := certPool.AppendCertsFromPEM(cert)
+	ok = certPool.AppendCertsFromPEM(cert)
 	if !ok {
 		return emptyCert, nil, fmt.Errorf("failed to append ca certificate")
 	}
